@@ -79,7 +79,7 @@ def validate_blender_manifest():
         return False
     
     try:
-        # Basic validation - in a real scenario you'd use a TOML parser
+        # Basic validation for TOML format
         with open(manifest_path, 'r') as f:
             content = f.read()
             
@@ -90,13 +90,18 @@ def validate_blender_manifest():
         
         missing_fields = []
         for field in required_fields:
-            if f'"{field}"' not in content:
+            # Check for TOML format: field = "value"
+            if f'{field} = ' not in content:
                 missing_fields.append(field)
         
         if missing_fields:
             print(f"❌ Missing manifest fields: {missing_fields}")
             return False
             
+        # Check for required sections
+        if "[permissions]" not in content:
+            print("⚠️  Warning: permissions section not found")
+        
         print("✅ Manifest file is valid")
         return True
         

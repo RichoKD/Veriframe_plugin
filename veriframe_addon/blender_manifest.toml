@@ -1,35 +1,17 @@
-{
-  "schema_version": "1.0.0",
-  "id": "veriframe",
-  "name": "VeriFrame",
-  "tagline": "Submit Blender renders to decentralized network",
-  "version": "1.0.0",
-  "type": "add-on",
-  "maintainer": "VeriFrame Team <team@veriframe.io>",
-  "license": [
-    "MIT"
-  ],
-  "blender_version_min": "4.0.0",
-  "platforms": [
-    "windows-x64",
-    "macos-x64", 
-    "macos-arm64",
-    "linux-x64"
-  ],
-  "tags": [
-    "render",
-    "network",
-    "blockchain",
-    "distributed",
-    "IPFS",
-    "Starknet"
-  ],
-  "website": "https://github.com/RichoKD/VeriFrame",
-  "copyright": [
-    "2024 VeriFrame Team"
-  ],
-  "permissions": {
-    "network": "Submit jobs and download results",
-    "files": "Read blend files and write downloaded results"
-  }
-}
+schema_version = "1.0.0"
+id = "veriframe"
+name = "VeriFrame"
+tagline = "Submit Blender renders to decentralized network"
+version = "1.0.0"
+type = "add-on"
+maintainer = "VeriFrame Team <team@veriframe.io>"
+license = ["MIT"]
+blender_version_min = "4.0.0"
+platforms = ["windows-x64", "macos-x64", "macos-arm64", "linux-x64"]
+tags = ["render", "network", "blockchain", "distributed", "IPFS", "Starknet"]
+website = "https://github.com/RichoKD/VeriFrame"
+copyright = ["2024 VeriFrame Team"]
+
+[permissions]
+network = "Submit jobs and download results"
+files = "Read blend files and write downloaded results"

@@ -31,16 +31,28 @@ class VF_PT_MainPanel(Panel):
         # Wallet Connection Section
         box = layout.box()
         row = box.row()
-        row.label(text="Wallet", icon='FUND')
+        row.label(text="Wallet", icon='STAR')
         
         if props.wallet_connected:
-            row.label(text=f"Connected: {props.wallet_address[:10]}...")
+            row.label(text=f"Connected: {props.wallet_address[:10]}...{props.wallet_address[-4:]}")
+            row.operator("veriframe.disconnect_wallet", text="", icon='UNLINKED')
             row.operator("veriframe.connect_wallet", text="", icon='FILE_REFRESH')
         else:
             row.operator("veriframe.connect_wallet", text="Connect Wallet")
         
+        # Show wallet address input field
         if not props.wallet_connected:
-            box.label(text="Connect wallet to submit jobs", icon='INFO')
+            col = box.column()
+            col.prop(props, "wallet_address", text="Wallet Address")
+            
+            # Quick connect button if address is entered
+            if props.wallet_address and props.wallet_address.startswith("0x"):
+                quick_connect = col.operator("veriframe.quick_connect", text="Quick Connect", icon='LINKED')
+            
+            col.separator()
+            col.label(text="💡 Enter address above or use Connect Wallet", icon='INFO')
+        
+        if not props.wallet_connected:
             return
         
         # Job Submission Section

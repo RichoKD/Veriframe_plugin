@@ -8,7 +8,7 @@ from bpy.props import StringProperty, BoolProperty, IntProperty
 
 class VeriFramePreferences(AddonPreferences):
     """VeriFrame addon preferences"""
-    bl_idname = __name__.split('.')[0]  # Get the addon name
+    bl_idname = __name__.partition('.')[0]  # Get the addon module name
     
     # Default wallet settings
     default_wallet_address: StringProperty(

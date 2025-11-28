@@ -18,19 +18,132 @@ class VF_OT_ConnectWallet(Operator):
     bl_idname = "veriframe.connect_wallet"
     bl_label = "Connect Wallet"
     bl_description = "Connect to your Starknet wallet"
-    bl_options = {'REGISTER'}
+    bl_options = {'REGISTER', 'UNDO'}
+    
+    # String property for wallet address input
+    wallet_address: StringProperty(
+        name="Wallet Address",
+        description="Enter your Starknet wallet address (0x...)",
+        default="",
+        maxlen=66  # Starknet addresses are typically 66 characters
+    )
+    
+    def invoke(self, context, event):
+        """Show dialog with wallet address input"""
+        props = context.scene.veriframe
+        
+        # Pre-fill with existing address if available
+        if props.wallet_address:
+            self.wallet_address = props.wallet_address
+        else:
+            # Try to get from preferences
+            try:
+                addon_prefs = context.preferences.addons[__name__.partition('.')[0]].preferences
+                if hasattr(addon_prefs, 'default_wallet_address') and addon_prefs.default_wallet_address:
+                    self.wallet_address = addon_prefs.default_wallet_address
+            except:
+                pass
+        
+        return context.window_manager.invoke_props_dialog(self, width=500)
+    
+    def draw(self, context):
+        """Draw the dialog UI"""
+        layout = self.layout
+        layout.label(text="Enter your Starknet wallet address:")
+        layout.prop(self, "wallet_address", text="")
+        
+        # Validation info
+        if self.wallet_address:
+            if self.wallet_address.startswith("0x") and len(self.wallet_address) >= 20:
+                layout.label(text="✅ Valid address format", icon='CHECKMARK')
+            else:
+                layout.label(text="⚠️ Address should start with 0x", icon='ERROR')
+        
+        layout.separator()
+        layout.label(text="💡 Tip: You can also set a default address in addon preferences")
     
     def execute(self, context):
         props = context.scene.veriframe
         
-        # In a real implementation, this would integrate with wallet extensions
-        # For now, we'll simulate wallet connection
-        if not props.wallet_address:
-            self.report({'ERROR'}, "Please enter a wallet address in preferences")
+        # Validate the address
+        if not self.wallet_address:
+            self.report({'ERROR'}, "Please enter a wallet address")
             return {'CANCELLED'}
         
+        if not self.wallet_address.startswith("0x"):
+            self.report({'ERROR'}, "Wallet address must start with 0x")
+            return {'CANCELLED'}
+        
+        if len(self.wallet_address) < 20:
+            self.report({'ERROR'}, "Wallet address is too short")
+            return {'CANCELLED'}
+        
+        # Store the address
+        props.wallet_address = self.wallet_address
         props.wallet_connected = True
-        self.report({'INFO'}, f"Connected to wallet: {props.wallet_address[:10]}...")
+        
+        # Optionally save to preferences for future use
+        try:
+            addon_prefs = context.preferences.addons[__name__.partition('.')[0]].preferences
+            if hasattr(addon_prefs, 'default_wallet_address'):
+                addon_prefs.default_wallet_address = self.wallet_address
+                self.report({'INFO'}, "Address saved to preferences")
+        except:
+            pass
+        
+        self.report({'INFO'}, f"Connected to wallet: {self.wallet_address[:10]}...{self.wallet_address[-6:]}")
+        return {'FINISHED'}
+
+class VF_OT_QuickConnect(Operator):
+    """Quick connect using address from input field"""
+    bl_idname = "veriframe.quick_connect"
+    bl_label = "Quick Connect"
+    bl_description = "Connect using the wallet address from the input field"
+    bl_options = {'REGISTER', 'UNDO'}
+    
+    def execute(self, context):
+        props = context.scene.veriframe
+        
+        # Validate the address from the property
+        if not props.wallet_address:
+            self.report({'ERROR'}, "Please enter a wallet address first")
+            return {'CANCELLED'}
+        
+        if not props.wallet_address.startswith("0x"):
+            self.report({'ERROR'}, "Wallet address must start with 0x")
+            return {'CANCELLED'}
+        
+        if len(props.wallet_address) < 20:
+            self.report({'ERROR'}, "Wallet address is too short")
+            return {'CANCELLED'}
+        
+        # Connect the wallet
+        props.wallet_connected = True
+        
+        # Save to preferences for future use
+        try:
+            addon_prefs = context.preferences.addons[__name__.partition('.')[0]].preferences
+            if hasattr(addon_prefs, 'default_wallet_address'):
+                addon_prefs.default_wallet_address = props.wallet_address
+        except:
+            pass
+        
+        self.report({'INFO'}, f"Connected to wallet: {props.wallet_address[:10]}...{props.wallet_address[-6:]}")
+        return {'FINISHED'}
+
+class VF_OT_DisconnectWallet(Operator):
+    """Disconnect wallet"""
+    bl_idname = "veriframe.disconnect_wallet"
+    bl_label = "Disconnect Wallet"
+    bl_description = "Disconnect the current wallet"
+    bl_options = {'REGISTER', 'UNDO'}
+    
+    def execute(self, context):
+        props = context.scene.veriframe
+        props.wallet_connected = False
+        props.wallet_address = ""
+        
+        self.report({'INFO'}, "Wallet disconnected")
         return {'FINISHED'}
 
 class VF_OT_SubmitJob(Operator):
